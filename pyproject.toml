@@ -1,5 +1,5 @@
 [project]
-name = "dbt2quicksight"
+name = "dbt_quicksight_lineage"
 version = "0.1.0"
 description = "Add a short description here"
 authors = [
