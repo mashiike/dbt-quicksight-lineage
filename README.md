@@ -5,6 +5,7 @@
 
 -----
 PyPI: https://pypi.org/project/dbt-quicksight-lineage/
+Target DBT Version: 1.5.*
 
 **Table of Contents**
 
