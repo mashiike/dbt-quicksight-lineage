@@ -1,11 +1,14 @@
-import click
+"""This module contains decorators for CLI commands that require wrappers"""
 from typing import Any, Dict, Optional
-import ruamel.yaml as yaml
 from functools import update_wrapper
+import click
+from ruamel import yaml
 from dbt_quicksight_lineage.core import ManifestLoader
 
 
 def dbt_manifest(func):
+    """Decorator for CLI commands that require a dbt manifest"""
+
     @click.option(
         "--manifest-path",
         "-m",
@@ -57,9 +60,11 @@ def dbt_manifest(func):
         )
         try:
             ctx.obj['manifest'] = loader.load_manifest()
-        except ValueError as e:
+        except ValueError as ex:
             click.echo(
-                "cannot load manifest, check --manifest-path flag: {}".format(e), err=True)
+                f"cannot load manifest, check --manifest-path flag: {ex}",
+                err=True,
+            )
             raise click.Abort()
         return func(*args, **kwargs)
     return update_wrapper(wrapper, func)

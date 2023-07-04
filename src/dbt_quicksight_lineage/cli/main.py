@@ -1,9 +1,9 @@
+"""dbt-quicksight-lineage: DBT to QuickSight Lineage commandline definition"""
 import sys
 import logging
-import colorlog
 from typing import Optional
+import colorlog
 import click
-
 from dbt_quicksight_lineage.cli import requires
 from dbt_quicksight_lineage.core import App
 from dbt_quicksight_lineage.__about__ import __version__
