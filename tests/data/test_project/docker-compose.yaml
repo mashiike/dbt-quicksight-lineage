@@ -1,0 +1,15 @@
+version: '3'
+services:
+  db:
+    image: postgres:15
+    environment:
+      - DATABASE_HOST=localhost
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGPASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - datavol:/var/lib/postgresql/data
+volumes:
+  datavol:

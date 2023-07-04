@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Optional
 from dbt.contracts.graph.manifest import Manifest
 
 # The ManifestLoader is responsible for loading DBT Manifests from the DBT
@@ -9,19 +8,17 @@ from dbt.contracts.graph.manifest import Manifest
 class ManifestLoader:
     def __init__(
         self,
-        manifest_path: Optional[str] = None,
+        manifest_path: str,
     ) -> None:
         self.manifest_path = manifest_path
 
     def load_manifest(self) -> Manifest:
-        if self.manifest_path is not None:
-            extension = self._get_extension()
-            if extension == '.json':
-                return self._load_from_json()
-            if extension == '.msgpack':
-                return self._load_from_msgpack()
-
-        raise ValueError(f'Invalid loader parameter')
+        extension = self._get_extension()
+        if extension == '.json':
+            return self._load_from_json()
+        if extension == '.msgpack':
+            return self._load_from_msgpack()
+        raise ValueError(f'unknown extension: {extension}')
 
     def _get_extension(self):
         _, ext = os.path.splitext(self.manifest_path)

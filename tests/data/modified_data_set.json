@@ -1,0 +1,77 @@
+{
+  "Arn": "arn:aws:quicksight:ap-northeast-1:123456789012:dataset/00000000-0000-0000-0000-000000000000",
+  "DataSetId": "00000000-0000-0000-0000-000000000000",
+  "Name": "my_first_dbt_model",
+  "CreatedTime": "2023-06-30T18:00:00.429000+09:00",
+  "LastUpdatedTime": "2023-06-30T19:37:45.400000+09:00",
+  "PhysicalTableMap": {
+    "12345678-9abc-def0-1234-56789abcdef0": {
+      "RelationalTable": {
+        "DataSourceArn": "arn:aws:quicksight:ap-northeast-1:123456789012:datasource/00000000-0000-0000-0000-000000000000",
+        "Schema": "public",
+        "Name": "my_first_dbt_model",
+        "InputColumns": [
+          {
+            "Name": "id",
+            "Type": "INTEGER"
+          }
+        ]
+      }
+    }
+  },
+  "LogicalTableMap": {
+    "23456781-9abc-def0-1234-56789abcdef0": {
+      "Alias": "My First DBT Model",
+      "DataTransforms": [
+        {
+          "RenameColumnOperation": {
+            "ColumnName": "id",
+            "NewColumnName": "ID"
+          }
+        },
+        {
+          "TagColumnOperation": {
+            "ColumnName": "ID",
+            "Tags": [
+              {
+                "ColumnDescription": {
+                  "Text": "The primary key for this table"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ProjectOperation": {
+            "ProjectedColumns": [
+              "ID"
+            ]
+          }
+        }
+      ],
+      "Source": {
+        "PhysicalTableId": "12345678-9abc-def0-1234-56789abcdef0"
+      }
+    }
+  },
+  "OutputColumns": [
+    {
+      "Name": "ID",
+      "Description": "The primary key for this table",
+      "Type": "INTEGER"
+    }
+  ],
+  "ImportMode": "SPICE",
+  "ConsumedSpiceCapacityInBytes": 12,
+  "FieldFolders": {
+    "Key": {
+      "columns": [
+        "ID"
+      ]
+    }
+  },
+  "DataSetUsageConfiguration": {
+    "DisableUseAsDirectQuerySource": false,
+    "DisableUseAsImportedSource": false
+  }
+}
