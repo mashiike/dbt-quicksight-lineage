@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: my_first_dbt_model
+    description: "A starter dbt model"
+    meta:
+      quicksight:
+        logical_table_name: My First DBT Model
+        data_sets:
+          - id: 00000000-0000-0000-0000-000000000000
+            data_source_arn: arn:aws:quicksight:ap-northeast-1:123456789012:datasource/00000000-0000-0000-0000-000000000000
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        meta:
+          quicksight:
+            field_name: ID
+            folder: Key
+        tests:
+          - unique
+          - not_null
+
+  - name: my_second_dbt_model
+    description: "A starter dbt model"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null

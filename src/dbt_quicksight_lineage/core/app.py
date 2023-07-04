@@ -2,8 +2,10 @@
 import logging
 import json
 import uuid
+import os
 from typing import Iterator, Optional, Any, Dict, Tuple, List
 import boto3
+from ruamel import yaml
 from dbt.contracts.graph.manifest import Manifest, ManifestNode
 logger = logging.getLogger()
 
@@ -140,6 +142,24 @@ class DataSet:
         """get returns value of key"""
         return self.data_set.get(key)
 
+def _insert_meta(target: yaml.CommentedMap) -> None:
+    name_pos: Optional[int] = None
+    description_pos: Optional[int] = None
+    last_pos: int = 0
+    for j, key in enumerate(target):
+        if key == 'name':
+            name_pos = j
+        if key == 'description':
+            description_pos = j
+        last_pos = j
+    insert_pos = last_pos
+    if description_pos is not None:
+        insert_pos = description_pos + 1
+    elif name_pos is not None:
+        insert_pos = name_pos + 1
+    else:
+        insert_pos = last_pos + 1
+    target.insert(insert_pos, 'meta', {})
 
 class App:
     """App represents dbt_quicksight_lineage application"""
@@ -160,6 +180,35 @@ class App:
                 'sts').get_caller_identity().get('Account')
         else:
             self.aws_account_id = aws_account_id
+
+    def init(
+            self,
+            data_set_id: str,
+            data_source_arn: Optional[str] = None,
+            project_dir: Optional[str] = None,
+    ) -> None:
+        """
+            execute init operation
+            download info from data set and write modify schema.yaml
+        """
+        output = self.quicksight_client.describe_data_set(
+            AwsAccountId=self.aws_account_id,
+            DataSetId=data_set_id,
+        )
+        if output.get('Status') != 200:
+            raise ValueError(
+                f'describe data set failed status: {output.get("Status")}')
+        data_set = DataSet(output.get('DataSet'))
+        logger.debug(data_set.to_json())
+        logger.info("DataSet Name: %s", data_set.get('Name'))
+        field_folders = data_set.filed_folders()
+        for physical_table_id, node in self._detect_related_nodes(data_set, data_source_arn):
+            self._update_schema_yaml(
+                data_set,
+                physical_table_id,
+                node,
+                project_dir,
+            )
 
     def update_data_set(
             self,
@@ -211,16 +260,22 @@ class App:
         logger.debug(json.dumps(output, indent=2, default=str))
         return output, update_data_set_input
 
-    def _find_models_by_data_set(
+    def _find_models(
             self,
-            data_set_id: str,
-            data_source_arn: Optional[str] = None
     ) -> Iterator[ManifestNode]:
         for node in self.manifest.nodes.values():
             if node.resource_type != 'model':
                 continue
             if node.language != 'sql':
                 continue
+            yield node
+
+    def _find_models_by_data_set(
+            self,
+            data_set_id: str,
+            data_source_arn: Optional[str] = None
+    ) -> Iterator[ManifestNode]:
+        for node in self._find_models():
             data_sets = node.meta.get('quicksight', {}).get('data_sets', [])
             for target in data_sets:
                 logger.debug(
@@ -343,3 +398,176 @@ class App:
             })
         logical_table['DataTransforms'] = data_transforms
         return logical_table, folders
+
+    def _detect_related_nodes(
+        self,
+        data_set: DataSet,
+        data_source_arn: Optional[str] = None,
+    ) -> Iterator[Tuple[str, ManifestNode]]:
+        """
+            detect related nodes from manifest
+
+            related condition:
+            if data_source_arn is not none, same data_set_arn
+            node.resource_type == 'model'
+            node.language == 'sql'
+            node.schema == physical_table.schema
+            node.alias == physical_table.name
+
+            return tuple of (physical_tabel_id, model_node)
+        """
+        data_set_id = data_set.data_set_id()
+        for physical_table_id, physical_table in data_set.physical_table_map().items():
+            relational_table = physical_table.get('RelationalTable')
+            if relational_table is None:
+                continue
+            if data_source_arn is not None:
+                if relational_table.get('DataSourceArn') != data_source_arn:
+                    continue
+            schema = relational_table.get('Schema')
+            identifier = relational_table.get('Name')
+            logger.debug(
+                "check PhysicalTableId: %s (data_set_id=%s data_source=%s)",
+                physical_table_id,
+                data_set_id,
+                data_source_arn,
+            )
+            if schema is None or identifier is None:
+                continue
+            for node in self._find_models():
+                logger.debug(
+                    "match check node=%s (table=%s.%s)",
+                    node.unique_id,
+                    schema,
+                    identifier,
+                )
+                if node.schema == schema and node.alias == identifier:
+                    yield physical_table_id, node
+
+    def _generate_schema_dict(  # pylint: disable=too-many-locals
+            self,
+            model_name: str,
+            data_set: DataSet,
+            physical_table_id: str,
+    ) -> Dict[str, Any]:
+        physical_table = data_set.physical_relational_table(physical_table_id)
+        _, logical_table = data_set.find_logical_table_by_physical_table_id(
+            physical_table_id,
+        )
+        model = {
+            'name':  model_name,
+            'meta': {
+                'quicksight': {
+                    'logical_table_name': logical_table['Alias'] or model_name,
+                    'data_sets': [
+                        {
+                            'id': data_set.data_set_id(),
+                            'data_source_arn': physical_table['DataSourceArn'],
+                        },
+                    ]
+                },
+            },
+            'columns': [],
+        }
+        columns = {}
+        for operation in logical_table.get('DataTransforms', []):
+            rename_operation = operation.get('RenameColumnOperation')
+            if rename_operation is not None:
+                logical_column_name = rename_operation['NewColumnName']
+                physical_column_name = rename_operation['ColumnName']
+                columns[logical_column_name] = {
+                    'name': physical_column_name,
+                    'meta': {
+                        'quicksight': {
+                            'field_name': logical_column_name,
+                        },
+                    },
+                }
+                continue
+            tag_operation = operation.get('TagColumnOperation')
+            if tag_operation is not None:
+                logical_column_name = tag_operation['ColumnName']
+                column = columns.get(logical_column_name, {})
+                for tag in tag_operation['Tags']:
+                    if 'ColumnDescription' in tag:
+                        column['description'] = tag['ColumnDescription']['Text']
+                continue
+        for field_folder_path, field_folder in (data_set.filed_folders() or {}).items():
+            if field_folder.get('description') is not None:
+                meta_folders = model['meta']['quicksight'].get('folders', [])
+                meta_folders.append({
+                    'name': field_folder_path,
+                    'description': field_folder['description'],
+                })
+                model['meta']['quicksight']['folders'] = meta_folders
+            for column_name in field_folder['columns']:
+                column = columns.get(column_name, {})
+                column['meta'] = column.get('meta', {})
+                column['meta']['quicksight'] = column['meta'].get(
+                    'quicksight', {})
+                column['meta']['quicksight']['folder'] = field_folder_path
+                columns[column_name] = column
+        model['columns'] = list(columns.values())
+        schema = {
+            'models': [model],
+        }
+        return schema
+
+
+
+    def _update_schema_yaml(  # pylint: disable=too-many-locals
+            self,
+            data_set: DataSet,
+            physical_table_id: str,
+            node: ManifestNode,
+            project_dir: Optional[str] = None,
+    ) -> None:
+        package_name, existing_file_path = node.patch_path.split("://")
+        if project_dir is not None:
+            existing_file_path = os.path.join(project_dir, existing_file_path)
+        logger.debug(
+            "target project: %s schema file path: %s",
+            package_name,
+            existing_file_path,
+        )
+        yaml_handler = yaml.YAML()
+        yaml_handler.indent(mapping=2, sequence=4, offset=2)
+        yaml_handler.width = 800
+        yaml_handler.preserve_quotes = True
+        yaml_handler.default_flow_style = False
+
+        with open(existing_file_path, 'r', encoding='utf-8') as f:
+            schema = yaml_handler.load(f)
+        generated_schema = self._generate_schema_dict(
+            node.name,
+            data_set,
+            physical_table_id,
+        )
+
+        # yaml marge: same name in list, overwrite
+        for schema_model in generated_schema['models']:
+            for i, model in enumerate(schema['models']):
+                if model['name'] != schema_model['name']:
+                    continue
+                meta = schema['models'][i].get('meta')
+                if meta is None:
+                    _insert_meta(schema['models'][i])
+                    meta = {}
+                meta.update(schema_model.get('meta', {}))
+                schema['models'][i]['meta'] = meta
+                for column in schema_model.get('columns', []):
+                    for j, target_column in enumerate(schema['models'][i]['columns']):
+                        if target_column['name'] != column['name']:
+                            continue
+                        meta = schema['models'][i]['columns'][j].get('meta')
+                        if meta is None:
+                            _insert_meta(schema['models'][i]['columns'][j])
+                            meta = {}
+                        meta.update(column.get('meta', {}))
+                        schema['models'][i]['columns'][j]['meta'] = meta
+                        if 'description' in column and 'description' not in target_column:
+                            schema['models'][i]['columns'][j]['description'] = column['description']
+        with open(existing_file_path, 'w', encoding='utf-8') as stream:
+            yaml_str = yaml_handler.dump(schema, stream)
+            logger.debug("updated schema yaml: %s", yaml_str)
+            logger.info("updated schema yaml: %s", existing_file_path)

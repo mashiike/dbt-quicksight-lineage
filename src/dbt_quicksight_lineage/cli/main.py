@@ -69,6 +69,40 @@ def dbt_quicksight_lineage(
     required=True,
 )
 @click.option(
+    "--data-source-arn",
+    type=str,
+    help="QuickSight DataSource ARN",
+)
+@requires.dbt_manifest
+def init(
+    ctx: click.Context,
+    data_set_id: str,
+    data_source_arn: Optional[str] = None,
+    project_dir: Optional[str] = None,
+    **_kwargs,
+):
+    """Modify schema.yml to add QuickSight metadata with Data Set"""
+    app = App(
+        manifest=ctx.obj['manifest'],
+    )
+    click.echo(
+        f"Describe DataSet: {data_set_id} on {app.aws_account_id}")
+    app.init(
+        data_set_id=data_set_id,
+        data_source_arn=data_source_arn,
+        project_dir=project_dir,
+    )
+
+
+@dbt_quicksight_lineage.command()
+@click.pass_context
+@click.option(
+    "--data-set-id",
+    type=str,
+    help="QuickSight DataSet ID",
+    required=True,
+)
+@click.option(
     "--dry-run",
     is_flag=True,
     help="Dry run",
@@ -78,6 +112,7 @@ def update_data_set(
     ctx: click.Context,
     data_set_id: str,
     dry_run: bool,
+    **_kwargs,
 ):
     """Update QuickSight DataSet from DBT Manifest"""
     app = App(

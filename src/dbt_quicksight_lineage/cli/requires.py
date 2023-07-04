@@ -1,6 +1,7 @@
 """This module contains decorators for CLI commands that require wrappers"""
 from typing import Any, Dict, Optional
 from functools import update_wrapper
+from pathlib import Path
 import click
 from ruamel import yaml
 from dbt_quicksight_lineage.core import ManifestLoader
@@ -18,6 +19,7 @@ def dbt_manifest(func):
     @click.option(
         "--profiles-dir",
         type=click.Path(exists=True),
+        default=Path.home() / ".dbt",
         help="Path to profiles.yml directory",
     )
     @click.option(
