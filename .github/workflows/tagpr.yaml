@@ -17,21 +17,21 @@ jobs:
         run: echo '### ${{steps.tagpr.outputs.tag}}' >> $GITHUB_STEP_SUMMARY
         if: ${{ steps.tagpr.outputs.tag != '' }}
       - uses: actions/checkout@v3
+        if: ${{ steps.tagpr.outputs.tag != '' }}
         with:
           ref: ${{ steps.tagpr.outputs.tag }}
           fetch-depth: 0
+      - name: Set up Python
         if: ${{ steps.tagpr.outputs.tag != '' }}
-       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-        if: ${{ steps.tagpr.outputs.tag != '' }}
       - name: setup pip
+        if: ${{ steps.tagpr.outputs.tag != '' }}
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install --upgrade build twine
           python3 -m pip install -r requirements-dev.lock
-        if: ${{ steps.tagpr.outputs.tag != '' }}
       - name: build
         if: ${{ steps.tagpr.outputs.tag != '' }}
         run: python3 -m build
