@@ -1,0 +1,39 @@
+# .github/workflows/tagpr.yml
+name: tagpr
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  tagpr:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: tagpr
+        uses: Songmu/tagpr@main
+      - name: Adding summary
+        run: echo '### ${{steps.tagpr.outputs.tag}}' >> $GITHUB_STEP_SUMMARY
+        if: ${{ steps.tagpr.outputs.tag != '' }}
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.tagpr.outputs.tag }}
+          fetch-depth: 0
+        if: ${{ steps.tagpr.outputs.tag != '' }}
+      - name: Install Rye
+        if: ${{ steps.tagpr.outputs.tag != '' }}
+        run: curl -sSf https://rye-up.com/get | bash
+      - name: Rye sync
+        if: ${{ steps.tagpr.outputs.tag != '' }}
+        run: rye sync --no-dev
+      - name: Rye sync
+        if: ${{ steps.tagpr.outputs.tag != '' }}
+        run: rye build
+      - name: Rye publish test PyPI
+        if: ${{ steps.tagpr.outputs.tag != '' }}
+        run: rye publish --token ${{ secrets.TEST_PYPI_API_TOKEN }} --repository testpypi --repository-url https://test.pypi.org/legacy/
+      - name: Rye publish PyPI
+        if: ${{ steps.tagpr.outputs.tag != '' }}
+        run: rye publish --token ${{ secrets.PYPI_API_TOKEN }}
+
