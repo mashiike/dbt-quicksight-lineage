@@ -18,7 +18,7 @@ logger = logging.getLogger()
 @pytest.fixture(scope='class')
 def example_manifest():
     loader = ManifestLoader(
-        manifest_path='tests/data/test_project/target/manifest.json',
+        manifest_path='tests/data/manifest.json',
     )
     return loader.load_manifest()
 

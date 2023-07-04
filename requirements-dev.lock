@@ -87,6 +87,8 @@ redshift-connector==2.0.911
 requests==2.31.0
 responses==0.23.1
 rich==13.4.2
+ruamel-yaml==0.17.32
+ruamel-yaml-clib==0.2.7
 s3transfer==0.6.1
 scramp==1.4.4
 shellingham==1.5.0.post1

@@ -29,6 +29,7 @@ dependencies = [
     "dbt-core~=1.5.2",
     "boto3~=1.26.164",
     "colorlog~=6.7.0",
+    "ruamel.yaml~=0.17.32",
 ]
 
 [tool.hatch.metadata]

@@ -63,13 +63,6 @@ def dbt_quicksight_lineage(
 @dbt_quicksight_lineage.command()
 @click.pass_context
 @click.option(
-    "--manifest-path",
-    "-m",
-    type=click.Path(exists=True),
-    help="Path to manifest.json or partial_parse.msgpack",
-    required=True,
-)
-@click.option(
     "--data-set-id",
     type=str,
     help="QuickSight DataSet ID",
@@ -85,7 +78,6 @@ def update_data_set(
     ctx: click.Context,
     data_set_id: str,
     dry_run: bool,
-    **kwargs,
 ):
     """Update QuickSight DataSet from DBT Manifest"""
     app = App(
