@@ -21,19 +21,22 @@ jobs:
           ref: ${{ steps.tagpr.outputs.tag }}
           fetch-depth: 0
         if: ${{ steps.tagpr.outputs.tag != '' }}
-      - name: Install Rye
+       - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
         if: ${{ steps.tagpr.outputs.tag != '' }}
-        run: curl -sSf https://rye-up.com/get | bash
-      - name: Rye sync
+      - name: setup pip
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade build twine
+          python3 -m pip install -r requirements-dev.lock
         if: ${{ steps.tagpr.outputs.tag != '' }}
-        run: rye sync --no-dev
-      - name: Rye sync
+      - name: build
         if: ${{ steps.tagpr.outputs.tag != '' }}
-        run: rye build
-      - name: Rye publish test PyPI
+        run: python3 -m build
+      - name: Publish package
         if: ${{ steps.tagpr.outputs.tag != '' }}
-        run: rye publish --token ${{ secrets.TEST_PYPI_API_TOKEN }} --repository testpypi --repository-url https://test.pypi.org/legacy/
-      - name: Rye publish PyPI
-        if: ${{ steps.tagpr.outputs.tag != '' }}
-        run: rye publish --token ${{ secrets.PYPI_API_TOKEN }}
-
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
