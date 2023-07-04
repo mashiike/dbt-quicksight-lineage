@@ -4,6 +4,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dbt-quicksight-lineage.svg)](https://pypi.org/project/dbt-quicksight-lineage)
 
 -----
+PyPI: https://pypi.org/project/dbt-quicksight-lineage/
 
 **Table of Contents**
 
