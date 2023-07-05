@@ -124,7 +124,9 @@ class TestApp:
         )
         with open('tests/data/modified_data_set.json') as f:
             modified_data_set = DataSet(json.load(f))
-        assert input == modified_data_set.to_dict()
+        assert input == modified_data_set.generate_update_data_set_input(
+            '123456789012'
+        )
 
     def test_detect_related_nodes(self, example_manifest, mock_quicksight_client):
         app = App(

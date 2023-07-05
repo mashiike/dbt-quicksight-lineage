@@ -1,9 +1,8 @@
 """dbt_quicksight_lineage.core.app is application core logic"""
 import logging
 import json
-import uuid
 import os
-from typing import Iterator, Optional, Any, Dict, Tuple, List
+from typing import Iterator, Optional, Any, Dict, Tuple
 import boto3
 from ruamel import yaml
 from dbt.contracts.graph.manifest import Manifest, ManifestNode
@@ -108,8 +107,10 @@ class App:
                 physical_table,
                 node,
             )
-        update_data_set_input = data_set.to_dict()
-        logger.debug(json.dumps(update_data_set_input, indent=2))
+        update_data_set_input = data_set.generate_update_data_set_input(
+            self.aws_account_id
+        )
+        logger.debug(json.dumps(update_data_set_input, indent=2, default=str))
         if dry_run:
             return None, update_data_set_input
         output = self.quicksight_client.update_data_set(

@@ -552,3 +552,33 @@ class DataSet:
             )
         if description is not None:
             self._field_folders[field_folder_path].description = description
+
+    _update_data_set_input_keys = [
+        'AwsAccountId',
+        'DataSetId',
+        'Name',
+        'PhysicalTableMap',
+        'LogicalTableMap',
+        'ImportMode',
+        'ColumnGroups',
+        'FieldFolders',
+        'RowLevelPermissionDataSet',
+        'RowLevelPermissionTagConfiguration',
+        'ColumnLevelPermissionRules',
+        'DataSetUsageConfiguration',
+        'DatasetParameters',
+    ]
+    def generate_update_data_set_input(
+            self,
+            aws_account_id: str,
+        ) -> Dict[str, Any]:
+        """
+        UpdateDataSetのInputを生成します
+        """
+        update_data_set_input = self.to_dict()
+        update_data_set_input['AwsAccountId'] = aws_account_id
+        keys = list(update_data_set_input.keys())
+        for key in keys:
+            if key not in self._update_data_set_input_keys:
+                del update_data_set_input[key]
+        return update_data_set_input
