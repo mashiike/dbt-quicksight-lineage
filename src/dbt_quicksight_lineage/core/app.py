@@ -302,6 +302,7 @@ class App:
                 column = {
                     'name': physical_column['Name'],
                 }
+                is_append = False
                 logical_column_name = logical_table.get_logical_column_name(
                     physical_column['Name'],
                 )
@@ -311,11 +312,22 @@ class App:
                             'field_name': logical_column_name,
                         },
                     }
+                    is_append = True
+                if not logical_table.contains_projected_columns(
+                    physical_column['Name'],
+                ):
+                    column['meta'] = column.get('meta', {})
+                    column['meta']['quicksight'] = column['meta'].get(
+                        'quicksight', {})
+                    column['meta']['quicksight']['hidden'] = True
+                    is_append = True
+
                 description = logical_table.get_tag_column_description(
                     physical_column['Name'],
                 )
                 if description is not None:
                     column['description'] = description
+                    is_append = True
                 field_folder_path = data_set.get_field_folder_path(
                     physical_table.physical_table_id,
                     physical_column['Name'],
@@ -325,8 +337,9 @@ class App:
                     column['meta']['quicksight'] = column['meta'].get(
                         'quicksight', {})
                     column['meta']['quicksight']['folder'] = field_folder_path
+                    is_append = True
 
-                if column.get('meta') is not None or column.get('description') is not None:
+                if is_append:
                     model['columns'].append(column)
 
             for field_folder in data_set.field_folders.values():
