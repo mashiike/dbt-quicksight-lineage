@@ -159,3 +159,10 @@ class ManifestNodeExplorer:
     ) -> Optional[str]:
         """return the folder from the node"""
         return self.get_columnn_quicksight_meta(column_name).get('folder')
+
+    def get_geographic_role(
+        self,
+        column_name: str,
+    ) -> Optional[str]:
+        """return the geographic role from the node"""
+        return self.get_columnn_quicksight_meta(column_name).get('geographic_role')

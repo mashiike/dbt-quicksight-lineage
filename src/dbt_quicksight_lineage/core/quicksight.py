@@ -229,6 +229,22 @@ class LogicalTable:
                 },
             )
 
+    def get_tag_column_geographic_role(
+        self,
+        physical_column_name: str
+    ) -> Optional[str]:
+        """
+        物理カラム名から地理情報のタグを取得します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        for operation in self._logical_table['DataTransforms']:
+            if operation.get('TagColumnOperation') is not None:
+                if operation['TagColumnOperation']['ColumnName'] == target_column_name:
+                    for tag in operation['TagColumnOperation']['Tags']:
+                        if tag.get('ColumnGeographicRole') is not None:
+                            return tag['ColumnGeographicRole']
+        return None
+
     def set_tag_column_geographic_role_operation(
         self,
         physical_column_name: str,
