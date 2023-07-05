@@ -221,6 +221,13 @@ class App:
                     column_name,
                     geograpic_role,
                 )
+            data_type = explorer.get_data_type(column_name)
+            if data_type is not None:
+                data_set.set_cast_column_type_operation(
+                    physical_table_id,
+                    column_name,
+                    data_type,
+                )
             if explorer.is_hidden(column_name):
                 data_set.remove_from_projected_columns(
                     physical_table_id,
@@ -349,6 +356,15 @@ class App:
                     physical_table.physical_table_id,
                     physical_column['Name'],
                 )
+                cast_column_type = logical_table.get_cast_column_type(
+                    physical_column['Name'],
+                )
+                if cast_column_type is not None:
+                    column['meta'] = column.get('meta', {})
+                    column['meta']['quicksight'] = column['meta'].get(
+                        'quicksight', {})
+                    column['meta']['quicksight']['data_type'] = cast_column_type.lower()
+                    is_append = True
                 if field_folder_path is not None:
                     column['meta'] = column.get('meta', {})
                     column['meta']['quicksight'] = column['meta'].get(

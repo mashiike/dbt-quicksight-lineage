@@ -252,6 +252,20 @@ class LogicalTable:
                     del self._logical_table['DataTransforms'][index]
                     break
 
+    def get_cast_column_type(
+        self,
+        physical_column_name: str
+    ) -> Optional[str]:
+        """
+        物理カラム名からCastColumnTypeOperationのNewColumnTypeを取得します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        for operation in self._logical_table['DataTransforms']:
+            if operation.get('CastColumnTypeOperation') is not None:
+                if operation['CastColumnTypeOperation']['ColumnName'] == target_column_name:
+                    return operation['CastColumnTypeOperation']['NewColumnType']
+        return None
+
     def set_cast_column_type_operation(
         self,
         physical_column_name: str,

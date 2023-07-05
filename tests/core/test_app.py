@@ -266,6 +266,7 @@ class TestApp:
                             'name': 'rate',
                             'meta': {
                                 'quicksight': {
+                                    'data_type': 'boolean',
                                     'hidden': True,
                                 },
                             },

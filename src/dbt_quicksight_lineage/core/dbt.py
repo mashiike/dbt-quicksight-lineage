@@ -166,3 +166,10 @@ class ManifestNodeExplorer:
     ) -> Optional[str]:
         """return the geographic role from the node"""
         return self.get_columnn_quicksight_meta(column_name).get('geographic_role')
+
+    def get_data_type(
+        self,
+        column_name: str,
+    ) -> Optional[str]:
+        """return the data type from the node"""
+        return self.get_columnn_quicksight_meta(column_name).get('data_type')
