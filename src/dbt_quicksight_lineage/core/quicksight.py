@@ -398,3 +398,11 @@ class DataSet:
                         field_folder.remove_column(column_name)
                     continue
                 field_folder.add_column(column_name)
+
+    def find_relational_table(self) -> Iterator[PhysicalTable]:
+        """
+        リレーショナルテーブルな物理テーブルの情報を検索します。
+        """
+        for physical_table in self._physical_table_map.values():
+            if physical_table.is_relational_table():
+                yield physical_table
