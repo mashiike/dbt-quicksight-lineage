@@ -228,6 +228,34 @@ class LogicalTable:
                     }
                 },
             )
+    def set_cast_column_type_operation(
+        self,
+        physical_column_name: str,
+        column_type: str
+    ) -> None:
+        """
+        CastColumnTypeOperationを設定します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        exits = False
+        last_cast_column_type_index = self._before_project_operation_index()
+        for index, operation in enumerate(self._logical_table['DataTransforms']):
+            if operation.get('CastColumnTypeOperation') is not None:
+                last_cast_column_type_index = index
+                if operation['CastColumnTypeOperation']['ColumnName'] == target_column_name:
+                    exits = True
+                    operation['CastColumnTypeOperation']['NewColumnType'] = column_type.upper()
+                    break
+        if not exits:
+            self._logical_table['DataTransforms'].insert(
+                last_cast_column_type_index + 1,
+                {
+                    'CastColumnTypeOperation': {
+                        'ColumnName': target_column_name,
+                        'NewColumnType': column_type.upper()
+                    }
+                },
+            )
 
     def get_tag_column_geographic_role(
         self,
@@ -536,6 +564,20 @@ class DataSet:
         for logical_table in self.find_logical_by_physical(physical_table_id):
             logical_table.set_tag_column_geographic_role_operation(
                 physical_column_name, geographic_role
+            )
+
+    def set_cast_column_type_operation(
+        self,
+        physical_table_id: str,
+        physical_column_name: str,
+        column_type: str
+    ) -> None:
+        """
+        指定された物理テーブルの指定された物理カラムのColumnTypeを設定します
+        """
+        for logical_table in self.find_logical_by_physical(physical_table_id):
+            logical_table.set_cast_column_type_operation(
+                physical_column_name, column_type
             )
 
     def add_to_projected_columns(
