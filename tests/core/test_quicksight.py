@@ -110,6 +110,18 @@ class TestDataSet:
             data_set.to_dict(),
         )
 
+    def test_set_cast_column_type_operation_same_type(self, source_data_set_dict):
+        data_set = DataSet(source_data_set_dict)
+        data_set.set_cast_column_type_operation(
+            physical_table_id=self.physical_table_id,
+            physical_column_name='rate',
+            column_type='DECIMAL',
+        )
+        assert_json_golden(
+            "tests/data/fixture/test_set_cast_column_type_operation_same_type.golden.json",
+            data_set.to_dict(),
+        )
+
     def test_set_cast_column_type_operation_exists_replace(self, source_data_set_dict):
         data_set = DataSet(source_data_set_dict)
         data_set.set_cast_column_type_operation(

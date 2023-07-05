@@ -67,6 +67,15 @@ class PhysicalTable:
             return iter(self.relational_table.get('InputColumns', []))
         return iter([])
 
+    def get_column_type(
+        self,
+        column_name: str,
+    ) -> str:
+        """カラムの型を取得します"""
+        for column in self.columns:
+            if column['Name'] == column_name:
+                return column['Type']
+        raise KeyError(f'column_name: {column_name} is not found')
 
 class LogicalTable:
     """
@@ -228,10 +237,25 @@ class LogicalTable:
                     }
                 },
             )
+
+    def remove_cast_column_type_operation(
+        self,
+        physical_column_name: str
+    ) -> None:
+        """
+        CastColumnTypeOperationを削除します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        for index, operation in enumerate(self._logical_table['DataTransforms']):
+            if operation.get('CastColumnTypeOperation') is not None:
+                if operation['CastColumnTypeOperation']['ColumnName'] == target_column_name:
+                    del self._logical_table['DataTransforms'][index]
+                    break
+
     def set_cast_column_type_operation(
         self,
         physical_column_name: str,
-        column_type: str
+        column_type: str,
     ) -> None:
         """
         CastColumnTypeOperationを設定します
@@ -566,6 +590,19 @@ class DataSet:
                 physical_column_name, geographic_role
             )
 
+    def remove_cast_column_type_operation(
+        self,
+        physical_table_id: str,
+        physical_column_name: str
+    ) -> None:
+        """
+        指定された物理テーブルの指定された物理カラムのColumnTypeを削除します
+        """
+        for logical_table in self.find_logical_by_physical(physical_table_id):
+            logical_table.remove_cast_column_type_operation(
+                physical_column_name
+            )
+
     def set_cast_column_type_operation(
         self,
         physical_table_id: str,
@@ -575,6 +612,13 @@ class DataSet:
         """
         指定された物理テーブルの指定された物理カラムのColumnTypeを設定します
         """
+        physical_table = self._physical_table_map[physical_table_id]
+        physical_column_type = physical_table.get_column_type(physical_column_name)
+        if physical_column_type.upper() == column_type.upper():
+            self.remove_cast_column_type_operation(
+                physical_table_id, physical_column_name
+            )
+            return
         for logical_table in self.find_logical_by_physical(physical_table_id):
             logical_table.set_cast_column_type_operation(
                 physical_column_name, column_type
