@@ -58,6 +58,10 @@ models:
         data_sets:
           - id: 00000000-0000-0000-0000-000000000000
             data_source_arn: arn:aws:quicksight:ap-northeast-1:123456789012:datasource/00000000-0000-0000-0000-000000000000
+        folders:
+          - name: Key
+            description: "this is Key folder, must distinct counts"
+          
     columns:
       - name: id
         description: "The primary key for this table"
@@ -65,9 +69,21 @@ models:
           quicksight:
             field_name: ID
             folder: Key
+            data_type: string
         tests:
           - unique
           - not_null
+      - name: geo
+        description: "City name of geometry"
+        meta:
+          quicksight:
+            geographic_role: city 
+            field_name: Geometry
+            folder: Key
+      - name: hidden_value
+        meta:
+          quicksight:
+            hidden: true
 
   - name: my_second_dbt_model
     description: "A starter dbt model"

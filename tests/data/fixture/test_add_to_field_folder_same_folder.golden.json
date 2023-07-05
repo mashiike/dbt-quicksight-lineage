@@ -102,6 +102,7 @@
   "ConsumedSpiceCapacityInBytes": 12,
   "FieldFolders": {
     "Key": {
+      "description": "this is key folder",
       "columns": [
         "ID",
         "geo"

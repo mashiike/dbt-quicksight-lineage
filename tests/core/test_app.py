@@ -217,6 +217,12 @@ class TestApp:
                                     'data_source_arn': 'arn:aws:quicksight:ap-northeast-1:123456789012:datasource/00000000-0000-0000-0000-000000000000',
                                 },
                             ],
+                            'folders': [
+                                {
+                                    'description': 'this is key folder',
+                                    'name': 'Key',
+                                }
+                            ],
                         },
                     },
                     'columns': [
