@@ -53,7 +53,7 @@
         {
           "RenameColumnOperation": {
             "ColumnName": "id",
-            "NewColumnName": "RowId"
+            "NewColumnName": "ID"
           }
         },
         {
@@ -63,8 +63,14 @@
           }
         },
         {
+          "CastColumnTypeOperation": {
+            "ColumnName": "updated_at",
+            "NewColumnType": "STRING"
+          }
+        },
+        {
           "TagColumnOperation": {
-            "ColumnName": "RowId",
+            "ColumnName": "ID",
             "Tags": [
               {
                 "ColumnDescription": {
@@ -87,7 +93,7 @@
         {
           "ProjectOperation": {
             "ProjectedColumns": [
-              "RowId",
+              "ID",
               "geo"
             ]
           }

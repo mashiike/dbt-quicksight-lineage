@@ -98,6 +98,42 @@ class TestDataSet:
             data_set.to_dict(),
         )
 
+    def test_set_cast_column_type_operation_not_exists(self, source_data_set_dict):
+        data_set = DataSet(source_data_set_dict)
+        data_set.set_cast_column_type_operation(
+            physical_table_id=self.physical_table_id,
+            physical_column_name='updated_at',
+            column_type='STRING',
+        )
+        assert_json_golden(
+            "tests/data/fixture/test_set_cast_column_type_operation_not_exists.golden.json",
+            data_set.to_dict(),
+        )
+
+    def test_set_cast_column_type_operation_same_type(self, source_data_set_dict):
+        data_set = DataSet(source_data_set_dict)
+        data_set.set_cast_column_type_operation(
+            physical_table_id=self.physical_table_id,
+            physical_column_name='rate',
+            column_type='DECIMAL',
+        )
+        assert_json_golden(
+            "tests/data/fixture/test_set_cast_column_type_operation_same_type.golden.json",
+            data_set.to_dict(),
+        )
+
+    def test_set_cast_column_type_operation_exists_replace(self, source_data_set_dict):
+        data_set = DataSet(source_data_set_dict)
+        data_set.set_cast_column_type_operation(
+            physical_table_id=self.physical_table_id,
+            physical_column_name='rate',
+            column_type='INTEGER',
+        )
+        assert_json_golden(
+            "tests/data/fixture/test_set_cast_column_type_operation_exists_replace.golden.json",
+            data_set.to_dict(),
+        )
+
     def test_add_to_projected_columns_not_exists(self, source_data_set_dict):
         data_set = DataSet(source_data_set_dict)
         data_set.add_to_projected_columns(

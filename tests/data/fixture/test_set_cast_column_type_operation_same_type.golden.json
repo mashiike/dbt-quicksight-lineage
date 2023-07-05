@@ -53,18 +53,12 @@
         {
           "RenameColumnOperation": {
             "ColumnName": "id",
-            "NewColumnName": "RowId"
-          }
-        },
-        {
-          "CastColumnTypeOperation": {
-            "ColumnName": "rate",
-            "NewColumnType": "BOOLEAN"
+            "NewColumnName": "ID"
           }
         },
         {
           "TagColumnOperation": {
-            "ColumnName": "RowId",
+            "ColumnName": "ID",
             "Tags": [
               {
                 "ColumnDescription": {
@@ -87,7 +81,7 @@
         {
           "ProjectOperation": {
             "ProjectedColumns": [
-              "RowId",
+              "ID",
               "geo"
             ]
           }

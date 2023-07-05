@@ -57,6 +57,12 @@
           }
         },
         {
+          "CastColumnTypeOperation": {
+            "ColumnName": "rate",
+            "NewColumnType": "BOOLEAN"
+          }
+        },
+        {
           "TagColumnOperation": {
             "ColumnName": "ID",
             "Tags": [
