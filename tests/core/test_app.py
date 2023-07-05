@@ -192,6 +192,98 @@ class TestApp:
         }
         assert actual == expected
 
+    def test_generate_schema_dict_fixture_data_set(self, example_manifest, mock_quicksight_client):
+        app = App(
+            quicksight_client=mock_quicksight_client,
+            manifest=example_manifest
+        )
+        with open('tests/data/fixture/data_set.json', 'r') as f:
+            data_set = DataSet(json.load(f))
+        actual = app._generate_schema_dict(
+            'test_model',
+            data_set,
+            '12345678-9abc-def0-1234-56789abcdef0',
+        )
+        expected = {
+            'models': [
+                {
+                    'name': 'test_model',
+                    'meta': {
+                        'quicksight': {
+                            'logical_table_name': 'My First DBT Model',
+                            'data_sets': [
+                                {
+                                    'id': '00000000-0000-0000-0000-000000000000',
+                                    'data_source_arn': 'arn:aws:quicksight:ap-northeast-1:123456789012:datasource/00000000-0000-0000-0000-000000000000',
+                                },
+                            ],
+                        },
+                    },
+                    'columns': [
+                        {
+                            'name': 'id',
+                            'description': 'The primary key for this table',
+                            'meta': {
+                                'quicksight': {
+                                    'field_name': 'ID',
+                                    'folder': 'Key',
+                                },
+                            },
+                        },
+                        {
+                            'name': 'name',
+                            'meta': {
+                                'quicksight': {
+                                    'hidden': True,
+                                },
+                            },
+                        },
+                        {
+                            'name': 'latitude',
+                            'meta': {
+                                'quicksight': {
+                                    'hidden': True,
+                                },
+                            },
+                        },
+                        {
+                            'name': 'longitude',
+                            'meta': {
+                                'quicksight': {
+                                    'hidden': True,
+                                },
+                            },
+                        },
+                        {
+                            'name': 'rate',
+                            'meta': {
+                                'quicksight': {
+                                    'hidden': True,
+                                },
+                            },
+                        },
+                        {
+                            'name': 'created_at',
+                            'meta': {
+                                'quicksight': {
+                                    'hidden': True,
+                                },
+                            },
+                        },
+                        {
+                            'name': 'updated_at',
+                            'meta': {
+                                'quicksight': {
+                                    'hidden': True,
+                                },
+                            },
+                        },
+                    ],
+                },
+            ],
+        }
+        assert actual == expected
+
     def test_update_schema_yaml(self, example_manifest, mock_quicksight_client):
         app = App(
             quicksight_client=mock_quicksight_client,
