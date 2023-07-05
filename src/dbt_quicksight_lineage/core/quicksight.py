@@ -256,6 +256,20 @@ class LogicalTable:
             }
         )
 
+    def contains_projected_columns(
+        self,
+        physical_column_name: str
+    ) -> bool:
+        """
+        ProjectedColumnsにカラムが含まれているかどうかを返します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        for operation in self._logical_table['DataTransforms']:
+            if operation.get('ProjectOperation') is not None:
+                if target_column_name in operation['ProjectOperation']['ProjectedColumns']:
+                    return True
+        return False
+
     def remove_from_projected_columns(
         self,
         physical_column_name: str
