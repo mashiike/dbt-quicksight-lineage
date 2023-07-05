@@ -31,13 +31,41 @@ class PhysicalTable:
 
     @property
     def is_relational_table(self) -> bool:
-        """登録済みかどうか"""
-        return self._physical_table['RelationalTable'] is not None
+        """リレーショナルテーブルですか？"""
+        return self.relational_table is not None
 
     @property
-    def relational_table(self) -> Dict[str, Any]:
+    def relational_table(self) -> Optional[Dict[str, Any]]:
         """リレーショナルテーブル"""
-        return self._physical_table['RelationalTable']
+        return self._physical_table.get('RelationalTable')
+
+    @property
+    def data_source_arn(self) -> Optional[str]:
+        """リレーショナルテーブルのデータソースARN"""
+        if self.is_relational_table:
+            return self.relational_table.get('DataSourceArn')
+        return None
+
+    @property
+    def schema_name(self) -> Optional[str]:
+        """リレーショナルテーブルのスキーマ名"""
+        if self.is_relational_table:
+            return self.relational_table.get('Schema')
+        return None
+
+    @property
+    def table_name(self) -> Optional[str]:
+        """リレーショナルテーブルのテーブル名"""
+        if self.is_relational_table:
+            return self.relational_table.get('Name')
+        return None
+
+    @property
+    def columns(self) -> Iterator[Dict[str, Any]]:
+        """リレーショナルテーブルのカラム"""
+        if self.is_relational_table:
+            return iter(self.relational_table.get('InputColumns', []))
+        return iter([])
 
 
 class LogicalTable:
@@ -70,6 +98,13 @@ class LogicalTable:
         """関連する物理テーブルID"""
         return self._logical_table.get('Source', {}).get('PhysicalTableId')
 
+    def _before_project_operation_index(self) -> int:
+        """ProjectOperationのインデックスを取得します"""
+        for index, operation in enumerate(self._logical_table['DataTransforms']):
+            if operation.get('ProjectOperation') is not None:
+                return index - 1
+        return 0
+
     def set_rename_column_operation(
         self,
         physical_column_name: str,
@@ -77,7 +112,7 @@ class LogicalTable:
     ) -> None:
         """RenameColumnOperationを設定します"""
         exits = False
-        last_rename_column_index = 0
+        last_rename_column_index = self._before_project_operation_index()
         old_column_name = physical_column_name
         for index, operation in enumerate(self._logical_table['DataTransforms']):
             if operation.get('RenameColumnOperation') is not None:
@@ -137,6 +172,22 @@ class LogicalTable:
             physical_column_name,
         ) or physical_column_name
 
+    def get_tag_column_description(
+        self,
+        physical_column_name: str
+    ) -> Optional[str]:
+        """
+        物理カラム名から説明のタグを取得します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        for operation in self._logical_table['DataTransforms']:
+            if operation.get('TagColumnOperation') is not None:
+                if operation['TagColumnOperation']['ColumnName'] == target_column_name:
+                    for tag in operation['TagColumnOperation']['Tags']:
+                        if tag.get('ColumnDescription') is not None:
+                            return tag['ColumnDescription']['Text']
+        return None
+
     def set_tag_column_description_operation(
         self,
         physical_column_name: str,
@@ -147,7 +198,7 @@ class LogicalTable:
         """
         target_column_name = self.get_output_column_name(physical_column_name)
         exits = False
-        last_tag_column_index = 0
+        last_tag_column_index = self._before_project_operation_index()
         for index, operation in enumerate(self._logical_table['DataTransforms']):
             if operation.get('TagColumnOperation') is not None:
                 last_tag_column_index = index
@@ -192,7 +243,44 @@ class LogicalTable:
             if operation.get('ProjectOperation') is not None:
                 if target_column_name in operation['ProjectOperation']['ProjectedColumns']:
                     return
-                operation['ProjectOperation']['ProjectedColumns'].append(target_column_name)
+                operation['ProjectOperation']['ProjectedColumns'].append(
+                    target_column_name)
+                return
+        self._logical_table['DataTransforms'].append(
+            {
+                'ProjectOperation': {
+                    'ProjectedColumns': [
+                        target_column_name
+                    ]
+                }
+            }
+        )
+
+    def remove_from_projected_columns(
+        self,
+        physical_column_name: str
+    ) -> None:
+        """
+        ProjectedColumnsからカラムを削除します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        for operation in self._logical_table['DataTransforms']:
+            if operation.get('ProjectOperation') is not None:
+                if target_column_name in operation['ProjectOperation']['ProjectedColumns']:
+                    operation['ProjectOperation']['ProjectedColumns'].remove(
+                        target_column_name)
+                    if len(operation['ProjectOperation']['ProjectedColumns']) == 0:
+                        self._logical_table['DataTransforms'].remove(operation)
+                    return
+
+    def set_alias(
+        self,
+        alias_name: str
+    ) -> None:
+        """
+        Aliasを設定します
+        """
+        self._logical_table['Alias'] = alias_name
 
 
 class FieldFolder:
@@ -245,6 +333,7 @@ class FieldFolder:
         """カラム数"""
         return len(self.columns)
 
+
 class DataSet:
     """
     QuickSightのDataSetを表現するクラスです。
@@ -286,11 +375,14 @@ class DataSet:
         self._data_set['FieldFolders'] = {}
         for k, v in self._field_folders.items():
             if v.column_count > 0:
-                self._data_set['FieldFolders'][k] = v.to_dict()
+                self._data_set['FieldFolders'][k.rstrip('/')] = v.to_dict()
 
         if len(self._data_set['FieldFolders']) == 0:
             del self._data_set['FieldFolders']
-
+        if 'OutputColumns' in self._data_set:
+            del self._data_set['OutputColumns']
+        if 'LastUpdatedTime' in self._data_set:
+            del self._data_set['LastUpdatedTime']
         return self._data_set
 
     def to_json(self) -> str:
@@ -374,6 +466,17 @@ class DataSet:
         for logical_table in self.find_logical_by_physical(physical_table_id):
             logical_table.add_to_projected_columns(physical_column_name)
 
+    def remove_from_projected_columns(
+        self,
+        physical_table_id: str,
+        physical_column_name: str,
+    ) -> None:
+        """
+        指定された物理テーブルの指定された物理カラムをProjectedColumnsから削除します
+        """
+        for logical_table in self.find_logical_by_physical(physical_table_id):
+            logical_table.remove_from_projected_columns(physical_column_name)
+
     def add_to_field_folder(
             self,
             physical_table_id: str,
@@ -404,5 +507,48 @@ class DataSet:
         リレーショナルテーブルな物理テーブルの情報を検索します。
         """
         for physical_table in self._physical_table_map.values():
-            if physical_table.is_relational_table():
+            if physical_table.is_relational_table:
                 yield physical_table
+
+    def get_field_folder_path(
+            self,
+            physical_table_id: str,
+            physical_column_name: str
+    ) -> Optional[str]:
+        """
+        指定された物理テーブルの指定された物理カラムが属するフィールドフォルダのパスを取得します
+        """
+        for logical_table in self.find_logical_by_physical(physical_table_id):
+            column_name = logical_table.get_output_column_name(
+                physical_column_name
+            )
+            for field_folder in self._field_folders.values():
+                if field_folder.contains_column(column_name):
+                    return field_folder.field_folder_path
+        return None
+
+    def set_alias(
+        self,
+        physical_table_id: str,
+        alias: str
+    ) -> None:
+        """
+        指定された物理テーブルのAliasに関連した設定します
+        """
+        for logical_table in self.find_logical_by_physical(physical_table_id):
+            logical_table.set_alias(alias)
+
+    def add_field_folder(
+        self,
+        field_folder_path: str,
+        description: Optional[str] = None,
+    ) -> None:
+        """
+        指定されたフィールドフォルダを追加します
+        """
+        if field_folder_path not in self._field_folders:
+            self._field_folders[field_folder_path] = FieldFolder(
+                field_folder_path, {},
+            )
+        if description is not None:
+            self._field_folders[field_folder_path].description = description

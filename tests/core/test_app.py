@@ -7,10 +7,10 @@ import shutil
 import filecmp
 from moto import mock_quicksight, mock_sts
 from mock import patch
+from dbt_quicksight_lineage.core.quicksight import DataSet
 from dbt_quicksight_lineage.core import (
     ManifestLoader,
     App,
-    DataSet,
 )
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -80,8 +80,8 @@ class TestApp:
         with open('tests/data/describe_data_set_output.json', 'r') as f:
             describe_data_set_output = json.load(f)
         actual = set([
-            (physical_table_id, node.unique_id)
-            for physical_table_id, node in app._detect_modify_target(DataSet(describe_data_set_output.get('DataSet')))
+            (physical_table.physical_table_id, node.unique_id)
+            for physical_table, node in app._detect_modify_target(DataSet(describe_data_set_output.get('DataSet')))
         ])
         expected = set([
             ('12345678-9abc-def0-1234-56789abcdef0',
@@ -89,7 +89,7 @@ class TestApp:
         ])
         assert actual == expected
 
-    def test_generate_logical_table(self, example_manifest, mock_quicksight_client):
+    def test_modify_logical_table(self, example_manifest, mock_quicksight_client):
         app = App(
             quicksight_client=mock_quicksight_client,
             manifest=example_manifest
@@ -98,18 +98,15 @@ class TestApp:
             describe_data_set_output = json.load(f)
         data_set = DataSet(describe_data_set_output.get('DataSet'))
         physical_table_id = '12345678-9abc-def0-1234-56789abcdef0'
-        logical_table, filed_folders = app._generate_logical_table(
-            physical_table_id,
-            data_set.physical_relational_table(physical_table_id),
+        app._modify_logical_table(
+            data_set,
+            data_set.physical_table_map[physical_table_id],
             example_manifest.nodes['model.test_project.my_first_dbt_model'],
         )
 
         with open('tests/data/modified_data_set.json') as f:
             modified_data_set = DataSet(json.load(f))
-        _, expected = modified_data_set.find_logical_table_by_physical_table_id(
-            physical_table_id)
-        assert expected == logical_table
-        assert modified_data_set.filed_folders() == filed_folders
+        assert data_set.to_dict() == modified_data_set.to_dict()
 
     @patch('botocore.client.BaseClient._make_api_call', new=mock_make_api_call)
     def test_update_data_set_dry_run(
@@ -127,8 +124,7 @@ class TestApp:
         )
         with open('tests/data/modified_data_set.json') as f:
             modified_data_set = DataSet(json.load(f))
-        assert input == modified_data_set.generate_update_data_set_input(
-            '123456789012')
+        assert input == modified_data_set.to_dict()
 
     def test_detect_related_nodes(self, example_manifest, mock_quicksight_client):
         app = App(
@@ -139,8 +135,8 @@ class TestApp:
             data_set = DataSet(json.load(f))
 
         actual = set([
-            (physical_table_id, node.unique_id)
-            for physical_table_id, node in app._detect_related_nodes(
+            (physical_table.physical_table_id, node.unique_id)
+            for physical_table, node in app._detect_related_nodes(
                 data_set,
             )
         ])
