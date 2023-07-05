@@ -214,6 +214,13 @@ class App:
                     column_name,
                     description,
                 )
+            geograpic_role = explorer.get_geographic_role(column_name)
+            if geograpic_role is not None:
+                data_set.set_tag_column_geographic_role_operation(
+                    physical_table_id,
+                    column_name,
+                    geograpic_role,
+                )
             if explorer.is_hidden(column_name):
                 data_set.remove_from_projected_columns(
                     physical_table_id,
@@ -328,6 +335,16 @@ class App:
                 if description is not None:
                     column['description'] = description
                     is_append = True
+                geograpic_role = logical_table.get_tag_column_geographic_role(
+                    physical_column['Name'],
+                )
+                if geograpic_role is not None:
+                    column['meta'] = column.get('meta', {})
+                    column['meta']['quicksight'] = column['meta'].get(
+                        'quicksight', {})
+                    column['meta']['quicksight']['geographic_role'] = geograpic_role.lower()
+                    is_append = True
+
                 field_folder_path = data_set.get_field_folder_path(
                     physical_table.physical_table_id,
                     physical_column['Name'],

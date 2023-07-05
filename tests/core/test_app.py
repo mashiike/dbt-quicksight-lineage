@@ -239,6 +239,14 @@ class TestApp:
                             },
                         },
                         {
+                            'name': 'geo',
+                            'meta': {
+                                'quicksight': {
+                                    'geographic_role': 'state',
+                                },
+                            },
+                        },
+                        {
                             'name': 'latitude',
                             'meta': {
                                 'quicksight': {

@@ -229,6 +229,61 @@ class LogicalTable:
                 },
             )
 
+    def get_tag_column_geographic_role(
+        self,
+        physical_column_name: str
+    ) -> Optional[str]:
+        """
+        物理カラム名から地理情報のタグを取得します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        for operation in self._logical_table['DataTransforms']:
+            if operation.get('TagColumnOperation') is not None:
+                if operation['TagColumnOperation']['ColumnName'] == target_column_name:
+                    for tag in operation['TagColumnOperation']['Tags']:
+                        if tag.get('ColumnGeographicRole') is not None:
+                            return tag['ColumnGeographicRole']
+        return None
+
+    def set_tag_column_geographic_role_operation(
+        self,
+        physical_column_name: str,
+        geographic_role: str
+    ) -> None:
+        """
+        TagColumnOperationのColumnGeographicRoleを設定します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        exits = False
+        last_tag_column_index = self._before_project_operation_index()
+        for index, operation in enumerate(self._logical_table['DataTransforms']):
+            if operation.get('TagColumnOperation') is not None:
+                last_tag_column_index = index
+                if operation['TagColumnOperation']['ColumnName'] != target_column_name:
+                    continue
+                for j, tag in enumerate(operation['TagColumnOperation']['Tags']):
+                    if tag.get('ColumnGeographicRole') is not None:
+                        exits = True
+                        tag['ColumnGeographicRole'] = geographic_role.upper()
+                        operation['TagColumnOperation']['Tags'][j] = tag
+                        break
+                if exits:
+                    break
+        if not exits:
+            self._logical_table['DataTransforms'].insert(
+                last_tag_column_index + 1,
+                {
+                    'TagColumnOperation': {
+                        'ColumnName': target_column_name,
+                        'Tags': [
+                            {
+                                'ColumnGeographicRole': geographic_role.upper()
+                            }
+                        ]
+                    }
+                },
+            )
+
     def add_to_projected_columns(
         self,
         physical_column_name: str
@@ -469,6 +524,20 @@ class DataSet:
                 physical_column_name, description
             )
 
+    def set_tag_column_geographic_role_operation(
+        self,
+        physical_table_id: str,
+        physical_column_name: str,
+        geographic_role: str
+    ) -> None:
+        """
+        指定された物理テーブルの指定された物理カラムのGeographicRoleを設定します
+        """
+        for logical_table in self.find_logical_by_physical(physical_table_id):
+            logical_table.set_tag_column_geographic_role_operation(
+                physical_column_name, geographic_role
+            )
+
     def add_to_projected_columns(
             self,
             physical_table_id: str,
@@ -582,10 +651,11 @@ class DataSet:
         'DataSetUsageConfiguration',
         'DatasetParameters',
     ]
+
     def generate_update_data_set_input(
-            self,
-            aws_account_id: str,
-        ) -> Dict[str, Any]:
+        self,
+        aws_account_id: str,
+    ) -> Dict[str, Any]:
         """
         UpdateDataSetのInputを生成します
         """
