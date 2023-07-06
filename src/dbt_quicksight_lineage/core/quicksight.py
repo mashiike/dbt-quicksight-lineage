@@ -197,6 +197,28 @@ class LogicalTable:
                             return tag['ColumnDescription']['Text']
         return None
 
+    def remove_tag_column_description_operation(
+        self,
+        physical_column_name: str
+    ) -> None:
+        """
+        TagColumnOperationのColumnDescriptionを削除します
+        """
+        target_column_name = self.get_output_column_name(physical_column_name)
+        last_tag_column_index = self._before_project_operation_index()
+        for index, operation in enumerate(self._logical_table['DataTransforms']):
+            if operation.get('TagColumnOperation') is not None:
+                last_tag_column_index = index
+                if operation['TagColumnOperation']['ColumnName'] != target_column_name:
+                    continue
+                for j, tag in enumerate(operation['TagColumnOperation']['Tags']):
+                    if tag.get('ColumnDescription') is not None:
+                        if len(operation['TagColumnOperation']['Tags']) == 1:
+                            self._logical_table['DataTransforms'].pop(index)
+                        else:
+                            operation['TagColumnOperation']['Tags'].pop(j)
+                        return
+
     def set_tag_column_description_operation(
         self,
         physical_column_name: str,
@@ -205,6 +227,9 @@ class LogicalTable:
         """
         TagColumnOperationのColumnDescriptionを設定します
         """
+        if description is None or description == '':
+            self.remove_tag_column_description_operation(physical_column_name)
+            return
         target_column_name = self.get_output_column_name(physical_column_name)
         exits = False
         last_tag_column_index = self._before_project_operation_index()

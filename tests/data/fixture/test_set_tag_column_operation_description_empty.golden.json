@@ -64,18 +64,6 @@
         },
         {
           "TagColumnOperation": {
-            "ColumnName": "ID",
-            "Tags": [
-              {
-                "ColumnDescription": {
-                  "Text": "The primary key for this table"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "TagColumnOperation": {
             "ColumnName": "geo",
             "Tags": [
               {

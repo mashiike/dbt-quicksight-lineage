@@ -62,6 +62,18 @@ class TestDataSet:
             data_set.to_dict(),
         )
 
+    def test_set_tag_column_operation_description_empty(self, source_data_set_dict):
+        data_set = DataSet(source_data_set_dict)
+        data_set.set_tag_column_description_operation(
+            physical_table_id=self.physical_table_id,
+            physical_column_name='id',
+            description='',
+        )
+        assert_json_golden(
+            "tests/data/fixture/test_set_tag_column_operation_description_empty.golden.json",
+            data_set.to_dict(),
+        )
+
     def test_set_tag_column_operation_description_exists_replace(self, source_data_set_dict):
         data_set = DataSet(source_data_set_dict)
         data_set.set_tag_column_description_operation(
