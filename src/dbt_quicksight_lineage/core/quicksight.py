@@ -490,6 +490,16 @@ class FieldFolder:
         """指定したカラム名を削除します"""
         self.columns.remove(column_name)
 
+    def rename_column(
+        self,
+        old_column_name: str,
+        new_column_name: str
+    ) -> None:
+        """指定したカラム名を変更します"""
+        if old_column_name in self.columns:
+            self.columns.remove(old_column_name)
+            self.columns.append(new_column_name)
+
     def add_column(
             self,
             column_name: str
@@ -607,9 +617,18 @@ class DataSet:
         RenameColumnOperationを設定します
         """
         for logical_table in self.find_logical_by_physical(physical_table_id):
+            old_output_column_name = logical_table.get_output_column_name(
+                physical_column_name
+            )
             logical_table.set_rename_column_operation(
                 physical_column_name, logical_column_name
             )
+            if old_output_column_name != logical_column_name:
+                for field_folder in self._field_folders.values():
+                    field_folder.rename_column(
+                        old_output_column_name, logical_column_name
+                    )
+
 
     def set_tag_column_description_operation(
             self,
