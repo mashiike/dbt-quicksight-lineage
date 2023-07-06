@@ -205,7 +205,7 @@ class App:
                 physical_table_id,
                 column_name,
             ):
-                logger.warn(
+                logger.warning(
                     "column %s defined in dbt schema. but not found in physical table %s",
                     column_name,
                     physical_table_id,

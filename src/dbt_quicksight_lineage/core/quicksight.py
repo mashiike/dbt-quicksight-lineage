@@ -67,6 +67,16 @@ class PhysicalTable:
             return iter(self.relational_table.get('InputColumns', []))
         return iter([])
 
+    def column_contains(
+        self,
+        column_name: str,
+    ) -> bool:
+        """カラムが存在するか確認します"""
+        for column in self.columns:
+            if column['Name'] == column_name:
+                return True
+        return False
+
     def get_column_type(
         self,
         column_name: str,
@@ -803,4 +813,4 @@ class DataSet:
         physical_table = self._physical_table_map.get(physical_table_id)
         if physical_table is None:
             return False
-        return physical_table.contains(physical_column_name)
+        return physical_table.column_contains(physical_column_name)
