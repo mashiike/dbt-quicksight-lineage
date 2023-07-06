@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.3.1](https://github.com/mashiike/dbt-quicksight-lineage/compare/v0.3.0...v0.3.1) - 2023-07-06
+- if not found physical column, ignore by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/18
+
 ## [v0.3.0](https://github.com/mashiike/dbt-quicksight-lineage/compare/v0.2.0...v0.3.0) - 2023-07-06
 - fix if field aleady exists in folder, duplicate by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/15
 - if dry-run , output stdout update data set input palyoad by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/16
