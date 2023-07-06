@@ -104,7 +104,7 @@
     "Key": {
       "description": "this is key folder",
       "columns": [
-        "ID"
+        "RowId"
       ]
     }
   },
