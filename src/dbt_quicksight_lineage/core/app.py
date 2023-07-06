@@ -201,6 +201,16 @@ class App:
                 field_folder.get('description')
             )
         for column_name in explorer.column_names:
+            if not data_set.physical_column_contains(
+                physical_table_id,
+                column_name,
+            ):
+                logger.warn(
+                    "column %s defined in dbt schema. but not found in physical table %s",
+                    column_name,
+                    physical_table_id,
+                )
+                continue
             field_name = explorer.get_field_name(column_name)
             if field_name is not None:
                 data_set.set_rename_column_operation(
