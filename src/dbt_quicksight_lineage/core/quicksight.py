@@ -775,6 +775,22 @@ class DataSet:
         for logical_table in self.find_logical_by_physical(physical_table_id):
             logical_table.set_alias(alias)
 
+    def remove_from_field_folder(
+        self,
+        physical_table_id: str,
+        physical_column_name: str,
+    ) -> None:
+        """
+        指定された物理テーブルの指定された物理カラムをフィールドフォルダから削除します
+        """
+        for logical_table in self.find_logical_by_physical(physical_table_id):
+            column_name = logical_table.get_output_column_name(
+                physical_column_name
+            )
+            for field_folder in self._field_folders.values():
+                if field_folder.contains_column(column_name):
+                    field_folder.remove_column(column_name)
+
     def add_field_folder(
         self,
         field_folder_path: str,
