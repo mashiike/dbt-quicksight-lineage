@@ -128,5 +128,5 @@ def update_data_set(
     if dry_run:
         click.echo(
             f"Update DataSet: {data_set_id} on {app.aws_account_id} (dry run)")
-        print(json.dumps(update_data_set, indent=2, default=str, ensure_ascii=False))
+        click.echo(json.dumps(update_data_set, indent=2, default=str, ensure_ascii=False))
         return
