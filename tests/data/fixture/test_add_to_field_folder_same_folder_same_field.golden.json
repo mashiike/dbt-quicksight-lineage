@@ -1,0 +1,115 @@
+{
+  "Arn": "arn:aws:quicksight:ap-northeast-1:123456789012:dataset/00000000-0000-0000-0000-000000000000",
+  "DataSetId": "00000000-0000-0000-0000-000000000000",
+  "Name": "my_first_dbt_model",
+  "CreatedTime": "2023-06-30T18:00:00.429000+09:00",
+  "PhysicalTableMap": {
+    "12345678-9abc-def0-1234-56789abcdef0": {
+      "RelationalTable": {
+        "DataSourceArn": "arn:aws:quicksight:ap-northeast-1:123456789012:datasource/00000000-0000-0000-0000-000000000000",
+        "Schema": "public",
+        "Name": "my_first_dbt_model",
+        "InputColumns": [
+          {
+            "Name": "id",
+            "Type": "INTEGER"
+          },
+          {
+            "Name": "name",
+            "Type": "STRING"
+          },
+          {
+            "Name": "geo",
+            "Type": "STRING"
+          },
+          {
+            "Name": "latitude",
+            "Type": "DECIMAL"
+          },
+          {
+            "Name": "longitude",
+            "Type": "DECIMAL"
+          },
+          {
+            "Name": "rate",
+            "Type": "DECIMAL"
+          },
+          {
+            "Name": "created_at",
+            "Type": "DATETIME"
+          },
+          {
+            "Name": "updated_at",
+            "Type": "DATETIME"
+          }
+        ]
+      }
+    }
+  },
+  "LogicalTableMap": {
+    "23456781-9abc-def0-1234-56789abcdef0": {
+      "Alias": "My First DBT Model",
+      "DataTransforms": [
+        {
+          "RenameColumnOperation": {
+            "ColumnName": "id",
+            "NewColumnName": "ID"
+          }
+        },
+        {
+          "CastColumnTypeOperation": {
+            "ColumnName": "rate",
+            "NewColumnType": "BOOLEAN"
+          }
+        },
+        {
+          "TagColumnOperation": {
+            "ColumnName": "ID",
+            "Tags": [
+              {
+                "ColumnDescription": {
+                  "Text": "The primary key for this table"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "TagColumnOperation": {
+            "ColumnName": "geo",
+            "Tags": [
+              {
+                "ColumnGeographicRole": "STATE"
+              }
+            ]
+          }
+        },
+        {
+          "ProjectOperation": {
+            "ProjectedColumns": [
+              "ID",
+              "geo"
+            ]
+          }
+        }
+      ],
+      "Source": {
+        "PhysicalTableId": "12345678-9abc-def0-1234-56789abcdef0"
+      }
+    }
+  },
+  "ImportMode": "SPICE",
+  "ConsumedSpiceCapacityInBytes": 12,
+  "FieldFolders": {
+    "Key": {
+      "description": "this is key folder",
+      "columns": [
+        "ID"
+      ]
+    }
+  },
+  "DataSetUsageConfiguration": {
+    "DisableUseAsDirectQuerySource": false,
+    "DisableUseAsImportedSource": false
+  }
+}
