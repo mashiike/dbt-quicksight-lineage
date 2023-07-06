@@ -218,6 +218,11 @@ class App:
                     column_name,
                     field_name,
                 )
+            else:
+                data_set.remove_rename_column_operation(
+                    physical_table_id,
+                    column_name,
+                )
             description = explorer.get_description(column_name)
             if description is not None:
                 data_set.set_tag_column_description_operation(
