@@ -2,6 +2,7 @@
 import sys
 import logging
 from typing import Optional
+import json
 import colorlog
 import click
 from dbt_quicksight_lineage.cli import requires
@@ -120,7 +121,12 @@ def update_data_set(
     )
     click.echo(
         f"Updating QuickSight DataSet: {data_set_id} on {app.aws_account_id}")
-    app.update_data_set(
+    _, update_data_set_input = app.update_data_set(
         data_set_id=data_set_id,
         dry_run=dry_run,
     )
+    if dry_run:
+        click.echo(
+            f"Update DataSet: {data_set_id} on {app.aws_account_id} (dry run)")
+        print(json.dumps(update_data_set, indent=2, default=str, ensure_ascii=False))
+        return
