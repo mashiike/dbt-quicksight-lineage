@@ -461,7 +461,8 @@ class FieldFolder:
             column_name: str
     ) -> None:
         """指定したカラム名を追加します"""
-        self.columns.append(column_name)
+        if column_name not in self.columns:
+            self.columns.append(column_name)
 
     @property
     def column_count(self) -> int:

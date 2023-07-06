@@ -191,3 +191,15 @@ class TestDataSet:
             "tests/data/fixture/test_add_to_field_folder_same_folder.golden.json",
             data_set.to_dict(),
         )
+
+    def test_add_to_field_folder_same_folder_same_field(self, source_data_set_dict):
+        data_set = DataSet(source_data_set_dict)
+        data_set.add_to_field_folder(
+            physical_table_id=self.physical_table_id,
+            physical_column_name='id',
+            field_folder_path='Key',
+        )
+        assert_json_golden(
+            "tests/data/fixture/test_add_to_field_folder_same_folder_same_field.golden.json",
+            data_set.to_dict(),
+        )
