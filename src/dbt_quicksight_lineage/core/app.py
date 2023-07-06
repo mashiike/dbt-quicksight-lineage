@@ -110,7 +110,8 @@ class App:
         update_data_set_input = data_set.generate_update_data_set_input(
             self.aws_account_id
         )
-        logger.debug(json.dumps(update_data_set_input, indent=2, default=str))
+        logger.debug(json.dumps(update_data_set_input,
+                     indent=2, default=str, ensure_ascii=False))
         if dry_run:
             return None, update_data_set_input
         output = self.quicksight_client.update_data_set(
