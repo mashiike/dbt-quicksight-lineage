@@ -205,7 +205,6 @@ class LogicalTable:
         TagColumnOperationのColumnDescriptionを削除します
         """
         target_column_name = self.get_output_column_name(physical_column_name)
-        last_tag_column_index = self._before_project_operation_index()
         for index, operation in enumerate(self._logical_table['DataTransforms']):
             if operation.get('TagColumnOperation') is not None:
                 last_tag_column_index = index
