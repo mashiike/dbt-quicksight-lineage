@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.3.2](https://github.com/mashiike/dbt-quicksight-lineage/compare/v0.3.1...v0.3.2) - 2023-12-08
+- fix rename exists column in folder by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/20
+- change dependency by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/25
+- Bump actions/checkout from 3 to 4 by @dependabot in https://github.com/mashiike/dbt-quicksight-lineage/pull/24
+
 ## [v0.3.1](https://github.com/mashiike/dbt-quicksight-lineage/compare/v0.3.0...v0.3.1) - 2023-07-06
 - if not found physical column, ignore by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/18
 
