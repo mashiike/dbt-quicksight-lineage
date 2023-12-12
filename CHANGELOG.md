@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.3](https://github.com/mashiike/dbt-quicksight-lineage/compare/v0.3.2...v0.3.3) - 2023-12-12
+- Bump actions/setup-python from 4 to 5 by @dependabot in https://github.com/mashiike/dbt-quicksight-lineage/pull/27
+- Update ruamel-yaml requirement from ~=0.17.32 to >=0.17.32,<0.19.0 by @dependabot in https://github.com/mashiike/dbt-quicksight-lineage/pull/29
+
 ## [v0.3.2](https://github.com/mashiike/dbt-quicksight-lineage/compare/v0.3.1...v0.3.2) - 2023-12-08
 - fix rename exists column in folder by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/20
 - change dependency by @mashiike in https://github.com/mashiike/dbt-quicksight-lineage/pull/25
